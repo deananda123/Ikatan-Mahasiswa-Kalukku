@@ -1,4 +1,5 @@
 <x-app-layout>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <x-slot name="header">
         <h2 class="font-black text-3xl text-[#051F20] leading-tight">
             {{ __('Pengaturan Web') }}
@@ -36,10 +37,11 @@
                             <div>
                                 <label for="ketua_photo" class="block text-sm font-bold text-gray-700 mb-2">Foto Ketua Umum</label>
                                 @if($setting->ketua_photo)
-                                    <img src="{{ asset('storage/' . $setting->ketua_photo) }}" alt="Ketua" class="w-full h-40 object-cover rounded-xl mb-2">
+                                    <img src="{{ asset('storage/' . $setting->ketua_photo) }}" alt="Ketua" id="ketua_photo_preview" class="w-full h-40 object-cover rounded-xl mb-2">
                                 @else
-                                    <img src="{{ asset('image/pengurus/ketua.jpeg') }}" alt="Ketua Default" class="w-full h-40 object-cover rounded-xl mb-2 opacity-50">
+                                    <img src="{{ asset('image/pengurus/ketua.jpeg') }}" alt="Ketua Default" id="ketua_photo_preview" class="w-full h-40 object-cover rounded-xl mb-2 opacity-50">
                                 @endif
+                                <input type="hidden" name="ketua_photo_cropped" id="ketua_photo_cropped">
                                 <input type="file" name="ketua_photo" id="ketua_photo" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-imk-50 file:text-imk-700 hover:file:bg-imk-100">
                                 @error('ketua_photo') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
                             </div>
@@ -48,10 +50,11 @@
                             <div>
                                 <label for="sekretaris_photo" class="block text-sm font-bold text-gray-700 mb-2">Foto Sekretaris Umum</label>
                                 @if($setting->sekretaris_photo)
-                                    <img src="{{ asset('storage/' . $setting->sekretaris_photo) }}" alt="Sekretaris" class="w-full h-40 object-cover rounded-xl mb-2">
+                                    <img src="{{ asset('storage/' . $setting->sekretaris_photo) }}" alt="Sekretaris" id="sekretaris_photo_preview" class="w-full h-40 object-cover rounded-xl mb-2">
                                 @else
-                                    <img src="{{ asset('image/pengurus/sekretaris.jpg') }}" alt="Sekretaris Default" class="w-full h-40 object-cover rounded-xl mb-2 opacity-50">
+                                    <img src="{{ asset('image/pengurus/sekretaris.jpg') }}" alt="Sekretaris Default" id="sekretaris_photo_preview" class="w-full h-40 object-cover rounded-xl mb-2 opacity-50">
                                 @endif
+                                <input type="hidden" name="sekretaris_photo_cropped" id="sekretaris_photo_cropped">
                                 <input type="file" name="sekretaris_photo" id="sekretaris_photo" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-imk-50 file:text-imk-700 hover:file:bg-imk-100">
                                 @error('sekretaris_photo') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
                             </div>
@@ -60,10 +63,11 @@
                             <div>
                                 <label for="bendahara_photo" class="block text-sm font-bold text-gray-700 mb-2">Foto Bendahara Umum</label>
                                 @if($setting->bendahara_photo)
-                                    <img src="{{ asset('storage/' . $setting->bendahara_photo) }}" alt="Bendahara" class="w-full h-40 object-cover rounded-xl mb-2">
+                                    <img src="{{ asset('storage/' . $setting->bendahara_photo) }}" alt="Bendahara" id="bendahara_photo_preview" class="w-full h-40 object-cover rounded-xl mb-2">
                                 @else
-                                    <img src="{{ asset('image/pengurus/bendahara.jpeg') }}" alt="Bendahara Default" class="w-full h-40 object-cover rounded-xl mb-2 opacity-50">
+                                    <img src="{{ asset('image/pengurus/bendahara.jpeg') }}" alt="Bendahara Default" id="bendahara_photo_preview" class="w-full h-40 object-cover rounded-xl mb-2 opacity-50">
                                 @endif
+                                <input type="hidden" name="bendahara_photo_cropped" id="bendahara_photo_cropped">
                                 <input type="file" name="bendahara_photo" id="bendahara_photo" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-imk-50 file:text-imk-700 hover:file:bg-imk-100">
                                 @error('bendahara_photo') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
                             </div>
@@ -182,4 +186,109 @@
             </div>
         </div>
     </div>
+
+    <!-- Crop Modal -->
+    <div id="cropModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-white rounded-[30px] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="text-xl font-bold text-[#051F20]">Sesuaikan Foto</h3>
+                <button type="button" id="closeCropModal" class="text-gray-400 hover:text-red-500 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6 flex-grow overflow-hidden relative bg-gray-900 flex justify-center items-center min-h-[400px]">
+                <img id="cropImage" src="" alt="Crop Preview" class="max-w-full max-h-[60vh] object-contain">
+            </div>
+            <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                <button type="button" id="cancelCrop" class="px-6 py-2.5 bg-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-300 transition">Batal</button>
+                <button type="button" id="saveCrop" class="px-6 py-2.5 bg-imk-600 text-white font-bold rounded-xl hover:bg-imk-700 transition">Crop & Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let cropper = null;
+            const cropModal = document.getElementById('cropModal');
+            const cropImage = document.getElementById('cropImage');
+            const saveCropBtn = document.getElementById('saveCrop');
+            const cancelCropBtn = document.getElementById('cancelCrop');
+            const closeCropModalBtn = document.getElementById('closeCropModal');
+            
+            let currentInputId = null;
+
+            const photoInputs = ['ketua_photo', 'sekretaris_photo', 'bendahara_photo'];
+
+            photoInputs.forEach(inputId => {
+                const inputEl = document.getElementById(inputId);
+                inputEl.addEventListener('change', function (e) {
+                    const files = e.target.files;
+                    if (files && files.length > 0) {
+                        const reader = new FileReader();
+                        reader.onload = function (event) {
+                            cropImage.src = event.target.result;
+                            currentInputId = inputId;
+                            cropModal.classList.remove('hidden');
+                            
+                            if (cropper) {
+                                cropper.destroy();
+                            }
+                            
+                            let ratio = 3 / 4;
+                            if (inputId === 'ketua_photo') {
+                                ratio = 340 / 460;
+                            } else {
+                                ratio = 72 / 96;
+                            }
+
+                            cropper = new Cropper(cropImage, {
+                                aspectRatio: ratio,
+                                viewMode: 1,
+                                autoCropArea: 1,
+                                responsive: true,
+                                background: false,
+                            });
+                        };
+                        reader.readAsDataURL(files[0]);
+                    }
+                });
+            });
+
+            function hideModal() {
+                cropModal.classList.add('hidden');
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+                if (currentInputId) {
+                    document.getElementById(currentInputId).value = '';
+                    currentInputId = null;
+                }
+            }
+
+            cancelCropBtn.addEventListener('click', hideModal);
+            closeCropModalBtn.addEventListener('click', hideModal);
+
+            saveCropBtn.addEventListener('click', function () {
+                if (!cropper || !currentInputId) return;
+
+                const canvas = cropper.getCroppedCanvas({
+                    width: currentInputId === 'ketua_photo' ? 680 : 576,
+                    height: currentInputId === 'ketua_photo' ? 920 : 768,
+                });
+
+                if (canvas) {
+                    const base64Image = canvas.toDataURL('image/jpeg', 0.9);
+                    
+                    document.getElementById(currentInputId + '_cropped').value = base64Image;
+                    document.getElementById(currentInputId + '_preview').src = base64Image;
+                    
+                    cropModal.classList.add('hidden');
+                    cropper.destroy();
+                    cropper = null;
+                }
+            });
+        });
+    </script>
 </x-app-layout>

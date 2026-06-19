@@ -51,11 +51,23 @@ class AdminSettingController extends Controller
 
         $photos = ['ketua_photo', 'sekretaris_photo', 'bendahara_photo'];
         foreach ($photos as $photo) {
-            if ($request->hasFile($photo)) {
+            $croppedField = $photo . '_cropped';
+            if ($request->hasFile($photo) || $request->filled($croppedField)) {
                 if ($setting->$photo) {
                     \Illuminate\Support\Facades\Storage::disk('public')->delete($setting->$photo);
                 }
-                $data[$photo] = $request->file($photo)->store('pengurus', 'public');
+                
+                if ($request->filled($croppedField)) {
+                    $image_parts = explode(";base64,", $request->$croppedField);
+                    $image_type_aux = explode("image/", $image_parts[0]);
+                    $image_type = $image_type_aux[1];
+                    $image_base64 = base64_decode($image_parts[1]);
+                    $fileName = 'pengurus/' . uniqid() . '.' . $image_type;
+                    \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $image_base64);
+                    $data[$photo] = $fileName;
+                } else {
+                    $data[$photo] = $request->file($photo)->store('pengurus', 'public');
+                }
             }
         }
 

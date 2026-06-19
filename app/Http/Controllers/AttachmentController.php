@@ -10,7 +10,7 @@ class AttachmentController extends Controller
 {
     public function index()
     {
-        $attachments = Attachment::latest()->get();
+        $attachments = Attachment::where('is_hidden', false)->latest()->get();
         return view('lampiran', compact('attachments'));
     }
 

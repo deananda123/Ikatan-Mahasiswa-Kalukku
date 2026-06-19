@@ -6,5 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Attachment extends Model
 {
-    protected $fillable = ['title', 'file_path', 'original_name'];
+    protected $fillable = ['title', 'file_path', 'original_name', 'is_hidden'];
+
+    protected $casts = [
+        'is_hidden' => 'boolean',
+    ];
 }

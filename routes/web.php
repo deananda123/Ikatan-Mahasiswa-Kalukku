@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('admin/news', AdminNewsController::class)->names('admin.news');
     Route::resource('admin/galleries', AdminGalleryController::class)->names('admin.galleries');
     Route::resource('admin/attachments', AdminAttachmentController::class)->names('admin.attachments');
+    Route::patch('admin/attachments/{attachment}/toggle-visibility', [AdminAttachmentController::class, 'toggleVisibility'])->name('admin.attachments.toggleVisibility');
     
     // Organization Structure Routes
     Route::resource('admin/organizations', App\Http\Controllers\AdminOrganizationController::class)->names('admin.organizations');

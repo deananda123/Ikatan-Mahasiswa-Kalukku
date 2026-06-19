@@ -78,4 +78,13 @@ class AdminAttachmentController extends Controller
 
         return redirect()->route('admin.attachments.index')->with('success', 'Lampiran berhasil dihapus!');
     }
+    public function toggleVisibility(Attachment $attachment)
+    {
+        $attachment->update([
+            'is_hidden' => !$attachment->is_hidden,
+        ]);
+
+        $status = $attachment->is_hidden ? 'disembunyikan' : 'ditampilkan';
+        return redirect()->route('admin.attachments.index')->with('success', "Lampiran berhasil {$status}.");
+    }
 }
